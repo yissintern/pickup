@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YISS 2026 — Student ID Card Pickup</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --navy: #003876; --navy-deep: #002654;
+    --gold: #C8A951; --gold-light: #E8D48B;
+    --blue: #1A5296; --blue-light: #E8F0FF;
+    --green: #22A065; --green-light: #E8F8F0;
+    --orange: #E8852E; --orange-light: #FFF4E8;
+    --red: #D94040; --red-light: #FFF0F0;
+    --card-bg: #fff; --text: #1A1A2E; --text2: #5A5A7A;
+    --font: 'DM Sans', 'Noto Sans KR', sans-serif;
+    --display: 'Playfair Display', serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font); min-height: 100vh; background: #EEF1F7; }
+
+  /* ─── Header ─── */
+  .top-bar {
+    background: linear-gradient(135deg, var(--navy), var(--navy-deep));
+    padding: 20px 24px; text-align: center; position: relative;
+  }
+  .top-bar::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--gold); }
+  .top-bar h1 { font-family: var(--display); font-size: 20px; color: #fff; margin-bottom: 4px; }
+  .top-bar p { font-size: 12px; color: rgba(200,169,81,0.8); font-weight: 500; }
+
+  /* ─── Layout ─── */
+  .container {
+    max-width: 440px; margin: 0 auto; padding: 24px 16px 40px;
+  }
+
+  .card {
+    background: var(--card-bg); border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+
+  .card-body { padding: 28px 24px; }
+
+  /* ─── Form ─── */
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 7px; }
+  .form-input {
+    width: 100%; padding: 13px 16px; border: 2px solid #E2E6F0; border-radius: 12px;
+    font-size: 15px; font-family: var(--font); color: var(--text); background: #FAFAFF; transition: all 0.2s;
+  }
+  .form-input:focus { outline: none; border-color: var(--navy); background: #fff; box-shadow: 0 0 0 4px rgba(0,56,118,0.07); }
+  .form-input::placeholder { color: #B0B4C8; }
+  .form-hint { font-size: 11px; color: var(--text2); margin-top: 5px; }
+
+  .btn-primary {
+    width: 100%; padding: 15px; background: linear-gradient(135deg, var(--navy), var(--blue));
+    color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 700;
+    font-family: var(--font); cursor: pointer; transition: all 0.2s; position: relative;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,56,118,0.25); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+  .error-msg {
+    display: none; align-items: center; gap: 8px;
+    background: var(--red-light); border: 1px solid #FFD4D4; border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: var(--red); font-weight: 500;
+  }
+
+  /* ─── Loading ─── */
+  .spinner {
+    display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── Result ─── */
+  #result-section { display: none; }
+
+  .id-notice {
+    background: var(--red-light); border: 1.5px solid #F5C0C0; border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .id-notice-icon { font-size: 20px; flex-shrink: 0; line-height: 1.2; }
+  .id-notice-text { font-size: 13px; color: #8B2020; font-weight: 600; line-height: 1.5; }
+  .id-notice-text span { display: block; font-size: 11.5px; font-weight: 500; color: #A04040; margin-top: 4px; }
+
+  .student-card {
+    background: #F8F9FC; border-radius: 14px; padding: 18px; margin-bottom: 20px;
+  }
+  .sc-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; }
+  .sc-row + .sc-row { border-top: 1px solid #EEEEF6; }
+  .sc-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+  .sc-value { font-size: 14px; color: var(--text); font-weight: 600; }
+
+  .table-badge {
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px; width: 100%; max-width: 280px;
+    padding: 20px; background: linear-gradient(135deg, var(--navy), var(--blue));
+    border-radius: 16px; text-align: center; position: relative; overflow: hidden;
+  }
+  .table-badge::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(200,169,81,0.15), transparent 60%);
+  }
+  .table-badge > * { position: relative; z-index: 1; }
+  .table-badge-inner { color: #fff; }
+  .table-badge-label { font-size: 12px; font-weight: 600; color: rgba(200,169,81,0.9); letter-spacing: 1px; margin-bottom: 6px; }
+  .table-badge-num { font-size: 56px; font-weight: 700; line-height: 1; }
+  .table-badge-sub { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 6px; }
+
+  .already-picked {
+    background: var(--green-light); border: 1.5px solid #B0E0C8; border-radius: 12px;
+    padding: 14px; text-align: center; margin-bottom: 20px;
+    font-size: 13px; color: var(--green); font-weight: 600;
+  }
+
+  .group-notice {
+    background: var(--blue-light); border: 1.5px solid #B0C8E8; border-radius: 12px;
+    padding: 16px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .group-notice-icon { font-size: 22px; flex-shrink: 0; line-height: 1.2; }
+  .group-notice-text { font-size: 14px; color: #2A4A7A; font-weight: 600; line-height: 1.6; }
+  .group-notice-text span { display: block; font-size: 12px; font-weight: 500; color: #5A7AAA; margin-top: 6px; }
+
+  .qr-section { text-align: center; margin-bottom: 16px; }
+  .qr-section h3 { font-size: 12px; color: var(--text2); font-weight: 600; margin-bottom: 10px; letter-spacing: 0.3px; }
+  .qr-wrap {
+    display: inline-block; padding: 14px; background: #fff;
+    border: 2px solid #E8E8F0; border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+  .qr-wrap img { display: none !important; }
+  .qr-wrap canvas { display: block !important; }
+  .qr-timer {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 10px; font-size: 11px; color: var(--text2); font-weight: 500;
+  }
+  .timer-bar { width: 100px; height: 3px; background: #E8E8F0; border-radius: 2px; overflow: hidden; }
+  .timer-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 1s linear; }
+
+  .qr-note {
+    background: var(--blue-light); border: 1px solid #C8D8F0; border-radius: 10px;
+    padding: 12px 14px; margin-top: 16px; font-size: 12px; color: #3A5A8A; font-weight: 500; line-height: 1.5;
+  }
+
+  .btn-back {
+    display: block; width: 100%; padding: 12px; margin-top: 12px;
+    background: #F4F4FA; border: 1px solid #E8E8F0; border-radius: 12px;
+    font-size: 13px; font-weight: 600; color: var(--text2);
+    cursor: pointer; font-family: var(--font); text-align: center; transition: all 0.2s;
+  }
+  .btn-back:hover { background: #EAEAF0; color: var(--text); }
+
+  .hidden { display: none !important; }
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  @media (max-width: 480px) {
+    .container { padding: 16px 12px 32px; }
+    .card-body { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>Student ID Card Pickup</h1>
+  <p>YISS 2026 · Yonsei International Summer School</p>
+</div>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div class="card" id="login-section">
+    <div class="card-body">
+      <div class="error-msg" id="error-msg">
+        <span>⚠</span> <span id="error-text"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" class="form-input" id="input-email"
+               placeholder="Enter your summerapply email" autocomplete="email">
+        <p class="form-hint">The email you used for your YISS application</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date of Birth</label>
+        <input type="text" class="form-input" id="input-dob"
+               placeholder="e.g. 20010315 (YYYYMMDD)" maxlength="8" inputmode="numeric">
+        <p class="form-hint">Enter 8 digits in YYYYMMDD format</p>
+      </div>
+      <button class="btn-primary" id="btn-lookup" onclick="handleLookup()">
+        Find My ID Card
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result-section" class="fade-in">
+
+    <!-- ID Notice -->
+    <div class="id-notice">
+      <div class="id-notice-icon">🪪</div>
+      <div class="id-notice-text">
+        You MUST bring a valid photo ID to pick up your student ID card.
+        <span>Accepted: passport, home institution student ID, or government-issued ID</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+
+        <!-- Already picked up warning -->
+        <div class="already-picked hidden" id="already-picked">
+          ✅ ID card already picked up on <span id="picked-time"></span>
+        </div>
+
+        <!-- Group distribution notice (UCEAP/CIEE) -->
+        <div class="group-notice hidden" id="group-notice">
+          <div class="group-notice-icon">📢</div>
+          <div class="group-notice-text">
+            Your student ID card will be distributed by <strong id="group-name">—</strong>.
+            <span>Please contact your program coordinator for pickup details.</span>
+          </div>
+        </div>
+
+        <!-- Table number -->
+        <div class="table-badge" id="table-badge">
+          <div class="table-badge-inner">
+            <div class="table-badge-label">GO TO TABLE</div>
+            <div class="table-badge-num" id="table-num">—</div>
+            <div class="table-badge-sub" id="table-location"></div>
+          </div>
+        </div>
+
+        <!-- Student info -->
+        <div class="student-card">
+          <div class="sc-row">
+            <span class="sc-label">Name</span>
+            <span class="sc-value" id="r-name">—</span>
+          </div>
+          <div class="sc-row">
+            <span class="sc-label">Student ID</span>
+            <span class="sc-value" id="r-id">—</span>
+          </div>
+          <div class="sc-row">
+            <span class="sc-label">Home Institution</span>
+            <span class="sc-value" id="r-affiliation">—</span>
+          </div>
+        </div>
+
+        <!-- QR Code -->
+        <div class="qr-section" id="qr-section">
+          <h3>PICKUP QR CODE — SHOW TO STAFF</h3>
+          <div class="qr-wrap" id="qr-container"></div>
+          <div class="qr-timer">
+            <span id="timer-text">Refreshes in 30s</span>
+            <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+          </div>
+        </div>
+
+        <div class="qr-note">
+          📱 Show this QR code to the staff at your assigned table. The code refreshes every 30 seconds — screenshots will not work.
+        </div>
+
+        <button class="btn-back" onclick="goBack()">← Look Up Another Student</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  CONFIG — 배포 후 URL 교체
+// ════════════════════════════════════════
+const CONFIG = {
+  API_URL: '',           // Apps Script Web App URL
+  DEMO_MODE: true,       // true = 로컬 데모, false = 서버 연동
+  QR_REFRESH_SEC: 30,
+  SECRET: 'YISS2026-pickup-system'
+};
+
+const DEMO_STUDENTS = {
+  'emma.j@berkeley.edu|20010315': { student_id: '2026840001', name: 'Emma Johnson', affiliation: 'UC Berkeley', group: 'UCEAP', table_number: '' },
+  'yuki.t@icu.ac.jp|20020728': { student_id: '2026840002', name: 'Yuki Tanaka', affiliation: 'ICU Japan', group: '', table_number: 1 },
+  'minji.p@northwestern.edu|20000501': { student_id: '2026840003', name: 'Min-ji Park', affiliation: 'Northwestern University', group: '', table_number: 2 },
+  'lucas.s@leeds.ac.uk|20011220': { student_id: '2026840004', name: 'Lucas Schmidt', affiliation: 'University of Leeds', group: '', table_number: 3 },
+  'sofia.c@ntu.edu.sg|19991103': { student_id: '2026840005', name: 'Sofia Chen', affiliation: 'NTU Singapore', group: '', table_number: 4 },
+  'john.d@ciee.org|20000801': { student_id: '2026840006', name: 'John Davis', affiliation: 'UNC Chapel Hill', group: 'CIEE', table_number: '' },
+};
+
+let timerInterval = null;
+let currentStudent = null;
+
+// ════════════════════════════════════════
+//  LOOKUP (서버사이드 매칭)
+// ════════════════════════════════════════
+async function handleLookup() {
+  const email = document.getElementById('input-email').value.trim();
+  const dob = document.getElementById('input-dob').value.trim();
+  const btn = document.getElementById('btn-lookup');
+
+  hideError();
+
+  if (!email) return showError('Please enter your email address.');
+  if (!email.includes('@')) return showError('Please enter a valid email address.');
+  if (!/^\d{8}$/.test(dob)) return showError('Date of Birth must be 8 digits (YYYYMMDD).');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Looking up...';
+
+  try {
+    let result;
+
+    if (CONFIG.DEMO_MODE) {
+      await new Promise(r => setTimeout(r, 1000));
+      const key = email.toLowerCase() + '|' + dob;
+      const student = DEMO_STUDENTS[key];
+      if (student) {
+        result = { success: true, student, settings: { event_location: 'Baekyang Hall Lobby' } };
+      } else {
+        result = { success: false, error: 'No matching record found. Please check your email and date of birth.' };
+      }
+    } else {
+      const res = await fetch(`${CONFIG.API_URL}?action=lookup&email=${encodeURIComponent(email)}&dob=${encodeURIComponent(dob)}`);
+      result = await res.json();
+    }
+
+    if (!result.success) {
+      showError(result.error);
+    } else {
+      currentStudent = result.student;
+      showResult(result.student, result.settings);
+    }
+  } catch (err) {
+    showError('Connection error. Please try again.');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = 'Find My ID Card';
+}
+
+// ════════════════════════════════════════
+//  RESULT DISPLAY
+// ════════════════════════════════════════
+function showResult(student, settings) {
+  document.getElementById('login-section').classList.add('hidden');
+  const resultEl = document.getElementById('result-section');
+  resultEl.style.display = 'block';
+  resultEl.classList.add('fade-in');
+
+  // Student info
+  document.getElementById('r-name').textContent = student.name;
+  document.getElementById('r-id').textContent = student.student_id;
+  document.getElementById('r-affiliation').textContent = student.affiliation;
+
+  // Table number
+  document.getElementById('table-num').textContent = student.table_number;
+  document.getElementById('table-location').textContent = settings.event_location || '';
+
+  // Already picked up?
+  const pickedEl = document.getElementById('already-picked');
+  const qrSection = document.getElementById('qr-section');
+  const tableBadge = document.getElementById('table-badge');
+  const idNotice = document.querySelector('.id-notice');
+  const groupNotice = document.getElementById('group-notice');
+  const qrNote = document.querySelector('.qr-note');
+
+  // Reset all states
+  pickedEl.classList.add('hidden');
+  groupNotice.classList.add('hidden');
+  tableBadge.style.display = 'flex';
+  qrSection.style.display = 'block';
+  idNotice.style.display = 'flex';
+  if (qrNote) qrNote.style.display = 'block';
+
+  // UCEAP/CIEE → 단체 배부 안내
+  const group = (student.group || '').toUpperCase();
+  if (group === 'UCEAP' || group === 'CIEE') {
+    groupNotice.classList.remove('hidden');
+    document.getElementById('group-name').textContent = group;
+    tableBadge.style.display = 'none';
+    qrSection.style.display = 'none';
+    idNotice.style.display = 'none';
+    if (qrNote) qrNote.style.display = 'none';
+  } else if (student.already_picked_up) {
+    pickedEl.classList.remove('hidden');
+    document.getElementById('picked-time').textContent = student.picked_up_at;
+    qrSection.style.display = 'none';
+  } else {
+    generateQR(student.student_id);
+    startTimer(student.student_id);
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ════════════════════════════════════════
+//  QR CODE
+// ════════════════════════════════════════
+function generateQR(studentId) {
+  const container = document.getElementById('qr-container');
+  container.innerHTML = '';
+  const ts = Math.floor(Date.now() / 1000);
+  const payload = `${studentId}|${ts}`;
+  const sig = simpleHash(payload + CONFIG.SECRET);
+
+  new QRCode(container, {
+    text: `YISSPICKUP|${payload}|${sig}`,
+    width: 180, height: 180,
+    colorDark: '#1A1A2E', colorLight: '#FFFFFF',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+function startTimer(studentId) {
+  if (timerInterval) clearInterval(timerInterval);
+  let sec = CONFIG.QR_REFRESH_SEC;
+  updateTimer(sec);
+  timerInterval = setInterval(() => {
+    sec--;
+    updateTimer(sec);
+    if (sec <= 0) { generateQR(studentId); sec = CONFIG.QR_REFRESH_SEC; }
+  }, 1000);
+}
+
+function updateTimer(sec) {
+  document.getElementById('timer-text').textContent = `Refreshes in ${sec}s`;
+  const pct = (sec / CONFIG.QR_REFRESH_SEC) * 100;
+  const fill = document.getElementById('timer-fill');
+  fill.style.width = pct + '%';
+  fill.style.background = pct < 20 ? '#D94040' : pct < 40 ? '#E8852E' : '#22A065';
+}
+
+function goBack() {
+  if (timerInterval) clearInterval(timerInterval);
+  document.getElementById('result-section').style.display = 'none';
+  const login = document.getElementById('login-section');
+  login.classList.remove('hidden');
+  document.getElementById('input-email').value = '';
+  document.getElementById('input-dob').value = '';
+  hideError();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  document.getElementById('error-text').textContent = msg;
+  el.style.display = 'flex';
+}
+function hideError() { document.getElementById('error-msg').style.display = 'none'; }
+
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+  return Math.abs(h).toString(36).substring(0, 8);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('login-section').classList.contains('hidden')) handleLookup();
+});
+</script>
+</body>
+</html>
