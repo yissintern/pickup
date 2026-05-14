@@ -111,7 +111,12 @@ async function loadStats(){
 async function startScan(){document.getElementById('btn-start').style.display='none';document.getElementById('btn-stop').style.display='block';html5QrCode=new Html5Qrcode('qr-reader');try{await html5QrCode.start({facingMode:'environment'},{fps:10,qrbox:{width:250,height:250}},onScan,()=>{});scanning=true;setStatus('ready','📷 Scanner active');}catch(e){setStatus('error','❌ Camera denied');document.getElementById('btn-start').style.display='block';document.getElementById('btn-stop').style.display='none';}}
 async function stopScan(){if(html5QrCode&&scanning){try{await html5QrCode.stop();}catch(e){}scanning=false;}document.getElementById('btn-start').style.display='block';document.getElementById('btn-stop').style.display='none';setStatus('ready','Stopped');}
 
+let lastScanTime = 0;  // ← 함수 바깥, 변수 선언 부분에 추가  
+  
 async function onScan(decoded){
+  const now2 = Date.now();
+  if (now2 - lastScanTime < 1000) return;
+  lastScanTime = now2;
   const p=decoded.split('|');if(p.length!==4||p[0]!=='YISSPICKUP'){setStatus('error','❌ Not a pickup QR');return;}
   const[,id,tsStr,sig]=p,now=Math.floor(Date.now()/1000);
   if(simpleHash(`${id}|${tsStr}`+SECRET)!==sig){setStatus('error','❌ Bad signature');return;}
