@@ -189,8 +189,8 @@
       <div class="form-group">
         <label class="form-label">Date of Birth</label>
         <input type="text" class="form-input" id="input-dob"
-               placeholder="e.g. 20010315 (YYYYMMDD)" maxlength="8" inputmode="numeric">
-        <p class="form-hint">Enter 8 digits in YYYYMMDD format</p>
+               placeholder="e.g. 010315 (YYMMDD)" maxlength="6" inputmode="numeric">
+        <p class="form-hint">Enter 6 digits in YYMMDD format</p>
       </div>
       <button class="btn-primary" id="btn-lookup" onclick="handleLookup()">
         Find My ID Card
@@ -285,12 +285,12 @@ const CONFIG = {
 };
 
 const DEMO_STUDENTS = {
-  'emma.j@berkeley.edu|20010315': { student_id: '2026840001', name: 'Emma Johnson', affiliation: 'UC Berkeley', group: 'UCEAP', table_number: '' },
-  'yuki.t@icu.ac.jp|20020728': { student_id: '2026840002', name: 'Yuki Tanaka', affiliation: 'ICU Japan', group: '', table_number: 1 },
-  'minji.p@northwestern.edu|20000501': { student_id: '2026840003', name: 'Min-ji Park', affiliation: 'Northwestern University', group: '', table_number: 2 },
-  'lucas.s@leeds.ac.uk|20011220': { student_id: '2026840004', name: 'Lucas Schmidt', affiliation: 'University of Leeds', group: '', table_number: 3 },
-  'sofia.c@ntu.edu.sg|19991103': { student_id: '2026840005', name: 'Sofia Chen', affiliation: 'NTU Singapore', group: '', table_number: 4 },
-  'john.d@ciee.org|20000801': { student_id: '2026840006', name: 'John Davis', affiliation: 'UNC Chapel Hill', group: 'CIEE', table_number: '' },
+  'emma.j@berkeley.edu|010315': { student_id: '2026840001', name: 'Emma Johnson', affiliation: 'UC Berkeley', group: 'UCEAP', table_number: '' },
+  'yuki.t@icu.ac.jp|020728': { student_id: '2026840002', name: 'Yuki Tanaka', affiliation: 'ICU Japan', group: '', table_number: 1 },
+  'minji.p@northwestern.edu|000501': { student_id: '2026840003', name: 'Min-ji Park', affiliation: 'Northwestern University', group: '', table_number: 2 },
+  'lucas.s@leeds.ac.uk|011220': { student_id: '2026840004', name: 'Lucas Schmidt', affiliation: 'University of Leeds', group: '', table_number: 3 },
+  'sofia.c@ntu.edu.sg|991103': { student_id: '2026840005', name: 'Sofia Chen', affiliation: 'NTU Singapore', group: '', table_number: 4 },
+  'john.d@ciee.org|000801': { student_id: '2026840006', name: 'John Davis', affiliation: 'UNC Chapel Hill', group: 'CIEE', table_number: '' },
 };
 
 let timerInterval = null;
@@ -308,7 +308,7 @@ async function handleLookup() {
 
   if (!email) return showError('Please enter your email address.');
   if (!email.includes('@')) return showError('Please enter a valid email address.');
-  if (!/^\d{8}$/.test(dob)) return showError('Date of Birth must be 8 digits (YYYYMMDD).');
+  if (!/^\d{6}$/.test(dob)) return showError('Date of Birth must be 6 digits (YYMMDD).');
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Looking up...';
