@@ -86,6 +86,7 @@ const CONFIG = { API_URL: 'https://script.google.com/macros/s/AKfycbytA7rdFc4gs0
 const QR_VALID=35, SECRET='YISS2026-pickup-system';
 let html5QrCode=null,scanning=false,logEntries=[],totalSt=0,pickedCount=0;
 let lastScanTime=0;
+let scannedSet=new Set();
 
 function getAPI(){return CONFIG.API_URL;}
 
@@ -129,6 +130,7 @@ async function onScan(decoded){
   const[,id,tsStr,sig]=p,now=Math.floor(Date.now()/1000);
   if(simpleHash(`${id}|${tsStr}`+SECRET)!==sig){setStatus('error','❌ Bad signature');scanFeedback('error');return;}
   const age=now-parseInt(tsStr);if(age>QR_VALID){setStatus('expired',`⏰ Expired (${age}s) — refresh`);scanFeedback('error');return;}
+  if(scannedSet.has(id)){setStatus('duplicate','⚠ Already picked up');scanFeedback('duplicate');return;}   
   setStatus('ready','⏳ Recording...');
   try{
     const r=await fetch(`${getAPI()}?action=pickup&id=${encodeURIComponent(id)}`);const d=await r.json();
@@ -136,7 +138,7 @@ async function onScan(decoded){
     const card=document.getElementById('scanned');
     document.getElementById('s-name').textContent=d.name||id;document.getElementById('s-detail').textContent=`${id} · ${d.affiliation||''}`;document.getElementById('s-table').textContent=`Table ${d.table_number||'?'}`;
     if(d.already_picked_up){card.className='scanned dup';setStatus('duplicate',`⚠ ${d.name} — already picked up`);scanFeedback('duplicate');}
-    else{card.className='scanned ok';setStatus('success',`✓ ${d.name} — pickup recorded!`);scanFeedback('success');pickedCount++;addLog(d.name,d.affiliation||'');}
+    else{card.className='scanned ok';setStatus('success',`✓ ${d.name} — pickup recorded!`);scanFeedback('success');pickedCount++;addLog(d.name,d.affiliation||'');scannedSet.add(id);}
     card.style.display='block';card.style.animation='none';card.offsetHeight;card.style.animation='slideUp 0.3s ease';updateCounter();
     loadStats();
     setTimeout(()=>{card.style.display='none';if(scanning)setStatus('ready','📷 Ready');},3000);
