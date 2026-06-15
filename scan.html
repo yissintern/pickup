@@ -138,7 +138,7 @@ async function onScan(decoded){
     const card=document.getElementById('scanned');
     document.getElementById('s-name').textContent=d.name||id;document.getElementById('s-detail').textContent=`${id} · ${d.affiliation||''}`;document.getElementById('s-table').textContent=`Table ${d.table_number||'?'}`;
     if(d.already_picked_up){card.className='scanned dup';setStatus('duplicate',`⚠ ${d.name} — already picked up`);scanFeedback('duplicate');}
-    else{card.className='scanned ok';setStatus('success',`✓ ${d.name} — pickup recorded!`);scanFeedback('success');pickedCount++;addLog(d.name,d.affiliation||'');scannedSet.add(id);}
+    else{card.className='scanned ok';setStatus('success',`✓ ${d.name} — pickup recorded!`);scanFeedback('success');pickedCount++;addLog(d.name,d.affiliation||'',id);scannedSet.add(id);}
     card.style.display='block';card.style.animation='none';card.offsetHeight;card.style.animation='slideUp 0.3s ease';updateCounter();
     loadStats();
     setTimeout(()=>{card.style.display='none';if(scanning)setStatus('ready','📷 Ready');},3000);
@@ -146,7 +146,7 @@ async function onScan(decoded){
 }
 
 function setStatus(t,m){const e=document.getElementById('scan-status');e.className=`scan-status ${t}`;e.textContent=m;}
-function addLog(name,affiliation){const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});logEntries.unshift({name,aff:affiliation||'',time:t});document.getElementById('log-list').innerHTML=logEntries.map(e=>`<div class="log-item"><span class="log-name">${e.name}<br><span class="log-aff">${e.aff}</span></span><span class="log-time">${e.time}</span></div>`).join('');}
+function addLog(name,affiliation,studentId){const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});logEntries.unshift({name,aff:affiliation||'',sid:studentId||'',time:t});document.getElementById('log-list').innerHTML=logEntries.map(e=>`<div class="log-item"><span class="log-name">${e.name}<br><span class="log-aff">${e.sid} · ${e.aff}</span></span><span class="log-time">${e.time}</span></div>`).join('');}
 function updateCounter(){document.getElementById('c-picked').textContent=pickedCount;document.getElementById('c-total').textContent=totalSt;document.getElementById('c-pct').textContent=totalSt>0?Math.round((pickedCount/totalSt)*100)+'%':'0%';}
 function simpleHash(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h).toString(36).substring(0,8);}
 </script>
