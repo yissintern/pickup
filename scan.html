@@ -147,7 +147,6 @@ async function onScan(decoded){
       scannedSet.add(id);
     }
     card.style.display='block';card.style.animation='none';card.offsetHeight;card.style.animation='slideUp 0.3s ease';updateCounter();
-    loadStats();
     setTimeout(()=>{card.style.display='none';if(scanning)setStatus('ready','📷 Ready');},3000);
   }catch(e){setStatus('error','❌ Network error');scanFeedback('error');}
 }
