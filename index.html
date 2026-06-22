@@ -223,8 +223,8 @@
         <div class="group-notice hidden" id="group-notice">
           <div class="group-notice-icon">📢</div>
           <div class="group-notice-text">
-            Your student ID card will be distributed by <strong id="group-name">—</strong>.
-            <span>Please contact your program coordinator for pickup details.</span>
+            <span id="group-notice-main">—</span>
+            <span id="group-notice-sub"></span>
           </div>
         </div>
 
@@ -381,9 +381,19 @@ function showResult(student, settings) {
 
   // UCEAP/CIEE → 단체 배부 안내
   const group = (student.group || '').toUpperCase();
-  if (group === 'UCEAP' || group === 'CIEE') {
+  if (group.includes('INTERNSHIP')) {
     groupNotice.classList.remove('hidden');
-    document.getElementById('group-name').textContent = group;
+    document.getElementById('group-notice-main').innerHTML = 'You already received your student ID card and T-shirt at the Internship Orientation.';
+    document.getElementById('group-notice-sub').textContent = 'No need to visit the pickup desk.';
+    tableBadge.style.display = 'none';
+    qrSection.style.display = 'none';
+    idNotice.style.display = 'none';
+    if (qrNote) qrNote.style.display = 'none';
+  } else if (group.includes('UCEAP') || group.includes('CIEE')) {
+    groupNotice.classList.remove('hidden');
+    const g = group.includes('UCEAP') ? 'UCEAP' : 'CIEE';
+    document.getElementById('group-notice-main').innerHTML = 'Your student ID card will be distributed by <strong>' + g + '</strong>.';
+    document.getElementById('group-notice-sub').textContent = 'Please contact your program coordinator for pickup details.';
     tableBadge.style.display = 'none';
     qrSection.style.display = 'none';
     idNotice.style.display = 'none';
