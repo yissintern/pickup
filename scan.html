@@ -136,7 +136,7 @@ async function onScan(decoded){
     const r=await fetch(`${getAPI()}?action=pickup&id=${encodeURIComponent(id)}`);const d=await r.json();
     if(!d.success){setStatus('error','❌ '+d.error);scanFeedback('error');return;}
     const card=document.getElementById('scanned');
-    document.getElementById('s-name').textContent=d.name||id;document.getElementById('s-detail').textContent=`${id} · ${d.affiliation||''}`;document.getElementById('s-table').textContent=`Table ${d.table_number||'?'}`;
+    document.getElementById('s-name').textContent=d.name||id;document.getElementById('s-detail').textContent=`${id} · ${d.affiliation||''}`;document.getElementById('s-table').textContent=`Table ${d.table_number||'?'} · Box ${d.box_number||'TBA'}`;
     if(d.already_picked_up){card.className='scanned dup';setStatus('duplicate',`⚠ ${d.name} — already picked up`);scanFeedback('duplicate');}
     else{
       card.className='scanned ok';
