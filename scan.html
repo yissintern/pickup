@@ -145,7 +145,7 @@ async function onScan(decoded){
       setStatus('success',`✓ ${d.name} — pickup recorded! (${d.pickedUp}/${d.total})`);
       scanFeedback('success');
       pickedCount=d.pickedUp; totalSt=d.total;   // ← 서버 최신값으로 갱신
-      addLog(d.name,d.affiliation||'',id);
+      addLog(d.name,d.affiliation||'',id,d.table_number||'?',d.box_number||'TBA');
       scannedSet.add(id);
     }
     card.style.display='block';card.style.animation='none';card.offsetHeight;card.style.animation='slideUp 0.3s ease';updateCounter();
