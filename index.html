@@ -21,7 +21,6 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: var(--font); min-height: 100vh; background: #EEF1F7; }
 
-  /* ─── Header ─── */
   .top-bar {
     background: linear-gradient(135deg, var(--navy), var(--navy-deep));
     padding: 20px 24px; text-align: center; position: relative;
@@ -30,20 +29,15 @@
   .top-bar h1 { font-family: var(--display); font-size: 20px; color: #fff; margin-bottom: 4px; }
   .top-bar p { font-size: 12px; color: rgba(200,169,81,0.8); font-weight: 500; }
 
-  /* ─── Layout ─── */
-  .container {
-    max-width: 440px; margin: 0 auto; padding: 24px 16px 40px;
-  }
+  .container { max-width: 440px; margin: 0 auto; padding: 24px 16px 40px; }
 
   .card {
     background: var(--card-bg); border-radius: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.08);
     overflow: hidden;
   }
-
   .card-body { padding: 28px 24px; }
 
-  /* ─── Form ─── */
   .form-group { margin-bottom: 18px; }
   .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 7px; }
   .form-input {
@@ -69,7 +63,6 @@
     padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: var(--red); font-weight: 500;
   }
 
-  /* ─── Loading ─── */
   .spinner {
     display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
     border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite;
@@ -77,7 +70,6 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ─── Result ─── */
   #result-section { display: none; }
 
   .id-notice {
@@ -88,9 +80,7 @@
   .id-notice-text { font-size: 13px; color: #8B2020; font-weight: 600; line-height: 1.5; }
   .id-notice-text span { display: block; font-size: 11.5px; font-weight: 500; color: #A04040; margin-top: 4px; }
 
-  .student-card {
-    background: #F8F9FC; border-radius: 14px; padding: 18px; margin-bottom: 20px;
-  }
+  .student-card { background: #F8F9FC; border-radius: 14px; padding: 18px; margin-bottom: 20px; }
   .sc-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; }
   .sc-row + .sc-row { border-top: 1px solid #EEEEF6; }
   .sc-label { font-size: 12px; color: var(--text2); font-weight: 500; }
@@ -201,7 +191,6 @@
   <!-- RESULT -->
   <div id="result-section" class="fade-in">
 
-    <!-- ID Notice -->
     <div class="id-notice">
       <div class="id-notice-icon">🪪</div>
       <div class="id-notice-text">
@@ -214,12 +203,10 @@
     <div class="card">
       <div class="card-body">
 
-        <!-- Already picked up warning -->
         <div class="already-picked hidden" id="already-picked">
           ✅ ID card already picked up on <span id="picked-time"></span>
         </div>
 
-        <!-- Group distribution notice (UCEAP/CIEE) -->
         <div class="group-notice hidden" id="group-notice">
           <div class="group-notice-icon">📢</div>
           <div class="group-notice-text">
@@ -228,7 +215,6 @@
           </div>
         </div>
 
-        <!-- Table number -->
         <div class="table-badge" id="table-badge">
           <div class="table-badge-inner">
             <div class="table-badge-label">GO TO TABLE</div>
@@ -237,7 +223,6 @@
           </div>
         </div>
 
-        <!-- Student info -->
         <div class="student-card">
           <div class="sc-row">
             <span class="sc-label">Name</span>
@@ -253,7 +238,6 @@
           </div>
         </div>
 
-        <!-- QR Code -->
         <div class="qr-section" id="qr-section">
           <h3>PICKUP QR CODE — SHOW TO STAFF</h3>
           <div class="qr-wrap" id="qr-container"></div>
@@ -275,12 +259,9 @@
 </div>
 
 <script>
-// ════════════════════════════════════════
-//  CONFIG — 배포 후 URL 교체
-// ════════════════════════════════════════
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbytA7rdFc4gs0Row16Y1up5Jw5Tv49vTFydG628AL9YlD7_rE8NHzthYorAg_y5XYbo/exec',           // Apps Script Web App URL
-  DEMO_MODE: false,       // true = 로컬 데모, false = 서버 연동
+  API_URL: 'https://script.google.com/macros/s/AKfycbytA7rdFc4gs0Row16Y1up5Jw5Tv49vTFydG628AL9YlD7_rE8NHzthYorAg_y5XYbo/exec',
+  DEMO_MODE: false,
   QR_REFRESH_SEC: 30,
   SECRET: 'YISS2026-pickup-system'
 };
@@ -289,17 +270,11 @@ const DEMO_STUDENTS = {
   'emma.j@berkeley.edu|010315': { student_id: '2026840001', name: 'Emma Johnson', affiliation: 'UC Berkeley', group: 'UCEAP', table_number: '' },
   'yuki.t@icu.ac.jp|020728': { student_id: '2026840002', name: 'Yuki Tanaka', affiliation: 'ICU Japan', group: '', table_number: 1 },
   'minji.p@northwestern.edu|000501': { student_id: '2026840003', name: 'Min-ji Park', affiliation: 'Northwestern University', group: '', table_number: 2 },
-  'lucas.s@leeds.ac.uk|011220': { student_id: '2026840004', name: 'Lucas Schmidt', affiliation: 'University of Leeds', group: '', table_number: 3 },
-  'sofia.c@ntu.edu.sg|991103': { student_id: '2026840005', name: 'Sofia Chen', affiliation: 'NTU Singapore', group: '', table_number: 4 },
-  'john.d@ciee.org|000801': { student_id: '2026840006', name: 'John Davis', affiliation: 'UNC Chapel Hill', group: 'CIEE', table_number: '' },
 };
 
 let timerInterval = null;
 let currentStudent = null;
 
-// ════════════════════════════════════════
-//  LOOKUP (서버사이드 매칭)
-// ════════════════════════════════════════
 async function handleLookup() {
   const email = document.getElementById('input-email').value.trim();
   const dob = document.getElementById('input-dob').value.trim();
@@ -316,13 +291,12 @@ async function handleLookup() {
 
   try {
     let result;
-
     if (CONFIG.DEMO_MODE) {
       await new Promise(r => setTimeout(r, 1000));
       const key = email.toLowerCase() + '|' + dob;
       const student = DEMO_STUDENTS[key];
       if (student) {
-        result = { success: true, student, settings: { event_location: 'Baekyang Hall Lobby' } };
+        result = { success: true, student, settings: { event_location: 'Baekyang Nuri' } };
       } else {
         result = { success: false, error: 'No matching record found. Please check your email and date of birth.' };
       }
@@ -345,25 +319,19 @@ async function handleLookup() {
   btn.innerHTML = 'Find My ID Card';
 }
 
-// ════════════════════════════════════════
-//  RESULT DISPLAY
-// ════════════════════════════════════════
 function showResult(student, settings) {
   document.getElementById('login-section').classList.add('hidden');
   const resultEl = document.getElementById('result-section');
   resultEl.style.display = 'block';
   resultEl.classList.add('fade-in');
 
-  // Student info
   document.getElementById('r-name').textContent = student.name;
   document.getElementById('r-id').textContent = student.student_id;
   document.getElementById('r-affiliation').textContent = student.affiliation;
 
-  // Table number
   document.getElementById('table-num').textContent = student.table_number;
   document.getElementById('table-location').textContent = settings.event_location || '';
 
-  // Already picked up?
   const pickedEl = document.getElementById('already-picked');
   const qrSection = document.getElementById('qr-section');
   const tableBadge = document.getElementById('table-badge');
@@ -379,9 +347,10 @@ function showResult(student, settings) {
   idNotice.style.display = 'flex';
   if (qrNote) qrNote.style.display = 'block';
 
-  // UCEAP/CIEE → 단체 배부 안내
-    const group = (student.group || '').toUpperCase();
+  const group = (student.group || '').toUpperCase();
+
   if (group.includes('취소')) {
+    // 등록 취소 — 픽업 불가
     groupNotice.classList.remove('hidden');
     document.getElementById('group-notice-main').innerHTML = 'Your registration has been cancelled.';
     document.getElementById('group-notice-sub').textContent = 'ID card pickup is not available. Please contact the YISS office if you have questions.';
@@ -389,7 +358,9 @@ function showResult(student, settings) {
     qrSection.style.display = 'none';
     idNotice.style.display = 'none';
     if (qrNote) qrNote.style.display = 'none';
+
   } else if (group.includes('INTERNSHIP')) {
+    // 인턴 — 이미 수령
     groupNotice.classList.remove('hidden');
     document.getElementById('group-notice-main').innerHTML = 'You already received your student ID card and T-shirt at the Internship Orientation.';
     document.getElementById('group-notice-sub').textContent = 'No need to visit the pickup desk.';
@@ -397,15 +368,9 @@ function showResult(student, settings) {
     qrSection.style.display = 'none';
     idNotice.style.display = 'none';
     if (qrNote) qrNote.style.display = 'none';
+
   } else if (group.includes('UCEAP') || group.includes('CIEE')) {
-    groupNotice.classList.remove('hidden');
-    document.getElementById('group-notice-main').innerHTML = 'You already received your student ID card and T-shirt at the Internship Orientation.';
-    document.getElementById('group-notice-sub').textContent = 'No need to visit the pickup desk.';
-    tableBadge.style.display = 'none';
-    qrSection.style.display = 'none';
-    idNotice.style.display = 'none';
-    if (qrNote) qrNote.style.display = 'none';
-  } else if (group.includes('UCEAP') || group.includes('CIEE')) {
+    // 단체배부 안내
     groupNotice.classList.remove('hidden');
     const g = group.includes('UCEAP') ? 'UCEAP' : 'CIEE';
     document.getElementById('group-notice-main').innerHTML = 'Your student ID card will be distributed by <strong>' + g + '</strong>.';
@@ -414,10 +379,12 @@ function showResult(student, settings) {
     qrSection.style.display = 'none';
     idNotice.style.display = 'none';
     if (qrNote) qrNote.style.display = 'none';
+
   } else if (student.already_picked_up) {
     pickedEl.classList.remove('hidden');
     document.getElementById('picked-time').textContent = student.picked_up_at;
     qrSection.style.display = 'none';
+
   } else {
     generateQR(student.student_id);
     startTimer(student.student_id);
@@ -426,9 +393,6 @@ function showResult(student, settings) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ════════════════════════════════════════
-//  QR CODE
-// ════════════════════════════════════════
 function generateQR(studentId) {
   const container = document.getElementById('qr-container');
   container.innerHTML = '';
@@ -474,9 +438,6 @@ function goBack() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ════════════════════════════════════════
-//  HELPERS
-// ════════════════════════════════════════
 function showError(msg) {
   const el = document.getElementById('error-msg');
   document.getElementById('error-text').textContent = msg;
