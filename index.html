@@ -380,8 +380,24 @@ function showResult(student, settings) {
   if (qrNote) qrNote.style.display = 'block';
 
   // UCEAP/CIEE → 단체 배부 안내
-  const group = (student.group || '').toUpperCase();
-  if (group.includes('INTERNSHIP')) {
+    const group = (student.group || '').toUpperCase();
+  if (group.includes('취소')) {
+    groupNotice.classList.remove('hidden');
+    document.getElementById('group-notice-main').innerHTML = 'Your registration has been cancelled.';
+    document.getElementById('group-notice-sub').textContent = 'ID card pickup is not available. Please contact the YISS office if you have questions.';
+    tableBadge.style.display = 'none';
+    qrSection.style.display = 'none';
+    idNotice.style.display = 'none';
+    if (qrNote) qrNote.style.display = 'none';
+  } else if (group.includes('INTERNSHIP')) {
+    groupNotice.classList.remove('hidden');
+    document.getElementById('group-notice-main').innerHTML = 'You already received your student ID card and T-shirt at the Internship Orientation.';
+    document.getElementById('group-notice-sub').textContent = 'No need to visit the pickup desk.';
+    tableBadge.style.display = 'none';
+    qrSection.style.display = 'none';
+    idNotice.style.display = 'none';
+    if (qrNote) qrNote.style.display = 'none';
+  } else if (group.includes('UCEAP') || group.includes('CIEE')) {
     groupNotice.classList.remove('hidden');
     document.getElementById('group-notice-main').innerHTML = 'You already received your student ID card and T-shirt at the Internship Orientation.';
     document.getElementById('group-notice-sub').textContent = 'No need to visit the pickup desk.';
