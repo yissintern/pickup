@@ -109,6 +109,7 @@ let html5QrCode=null,scanning=false,logEntries=[],totalSt=0,pickedCount=0;
 let lastScanTime=0;
 let scannedSet=new Set();
 let isProcessing = false;
+let statsTimer = null;   // 카운터 주기 갱신용
 
 function getAPI(){return CONFIG.API_URL;}
 
@@ -153,8 +154,15 @@ async function loadStats(){
   }catch(e){setStatus('error','❌ Failed to load');}
 }
 
-async function startScan(){document.getElementById('btn-start').style.display='none';document.getElementById('btn-stop').style.display='block';html5QrCode=new Html5Qrcode('qr-reader');try{await html5QrCode.start({facingMode:'environment'},{fps:10,qrbox:{width:250,height:250}},onScan,()=>{});scanning=true;setStatus('ready','📷 Scanner active');}catch(e){setStatus('error','❌ Camera denied');document.getElementById('btn-start').style.display='block';document.getElementById('btn-stop').style.display='none';}}
-async function stopScan(){if(html5QrCode&&scanning){try{await html5QrCode.stop();}catch(e){}scanning=false;}document.getElementById('btn-start').style.display='block';document.getElementById('btn-stop').style.display='none';setStatus('ready','Stopped');}
+// 카운터만 조용히 갱신 (스캔 상태 텍스트는 안 건드림) — 5초마다 호출
+async function refreshCounts(){
+  try{const r=await fetch(`${getAPI()}?action=stats`);const d=await r.json();
+    if(d.success){totalSt=d.total;pickedCount=d.pickedUp;updateCounter();}
+  }catch(e){}
+}
+
+async function startScan(){document.getElementById('btn-start').style.display='none';document.getElementById('btn-stop').style.display='block';html5QrCode=new Html5Qrcode('qr-reader');try{await html5QrCode.start({facingMode:'environment'},{fps:10,qrbox:{width:250,height:250}},onScan,()=>{});scanning=true;setStatus('ready','📷 Scanner active');refreshCounts();if(statsTimer)clearInterval(statsTimer);statsTimer=setInterval(refreshCounts,5000);}catch(e){setStatus('error','❌ Camera denied');document.getElementById('btn-start').style.display='block';document.getElementById('btn-stop').style.display='none';}}
+async function stopScan(){if(html5QrCode&&scanning){try{await html5QrCode.stop();}catch(e){}scanning=false;}if(statsTimer){clearInterval(statsTimer);statsTimer=null;}document.getElementById('btn-start').style.display='block';document.getElementById('btn-stop').style.display='none';setStatus('ready','Stopped');}
 
 async function onScan(decoded){
   const now2=Date.now();if(now2-lastScanTime<1000)return;lastScanTime=now2;
@@ -176,10 +184,10 @@ async function onScan(decoded){
       card.className='scanned dup';setStatus('duplicate',`⚠ ${d.name} — already picked up`);scanFeedback('duplicate');
     }else{
       card.className='scanned ok';
-      setStatus('success',`✓ ${d.name} — pickup recorded! (${d.pickedUp}/${d.total})`);
+      setStatus('success',`✓ ${d.name} — pickup recorded!`);
       scanFeedback('success');
       showSuccessPop(d.name, d.table_number, d.box_number, d.affiliation, id);   // ← 학번(id) 전달
-      pickedCount=d.pickedUp; totalSt=d.total;
+      pickedCount++;   // 즉시 +1 (정확값은 5초마다 stats로 보정)
       addLog(d.name,d.affiliation||'',id,d.table_number||'?',d.box_number||'TBA');
     }
     card.style.display='block';card.style.animation='none';card.offsetHeight;card.style.animation='slideUp 0.3s ease';updateCounter();
