@@ -58,7 +58,8 @@
   .success-pop.show{display:flex}
   @keyframes popIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:none}}
   .success-pop .checkmark{font-size:80px;line-height:1;margin-bottom:18px}
-  .success-pop .sp-name{font-size:30px;font-weight:700;margin-bottom:10px;line-height:1.2}
+  .success-pop .sp-name{font-size:30px;font-weight:700;margin-bottom:6px;line-height:1.2}
+  .success-pop .sp-sid{font-size:17px;font-weight:600;opacity:0.9;letter-spacing:1px;margin-bottom:12px}
   .success-pop .sp-box{font-size:24px;font-weight:700;background:rgba(255,255,255,0.22);padding:10px 28px;border-radius:14px;margin-top:6px}
   .success-pop .sp-aff{font-size:15px;opacity:0.85;margin-top:16px}
 </style>
@@ -96,6 +97,7 @@
 <div class="success-pop" id="success-pop">
   <div class="checkmark">✓</div>
   <div class="sp-name" id="sp-name">—</div>
+  <div class="sp-sid" id="sp-sid">—</div>
   <div class="sp-box" id="sp-box">—</div>
   <div class="sp-aff" id="sp-aff">—</div>
 </div>
@@ -106,7 +108,7 @@ const QR_VALID=35, SECRET='YISS2026-pickup-system';
 let html5QrCode=null,scanning=false,logEntries=[],totalSt=0,pickedCount=0;
 let lastScanTime=0;
 let scannedSet=new Set();
-let isProcessing = false;  
+let isProcessing = false;
 
 function getAPI(){return CONFIG.API_URL;}
 
@@ -122,8 +124,9 @@ function scanFeedback(type){
   document.body.appendChild(flash);setTimeout(()=>flash.remove(),600);
 }
 
-function showSuccessPop(name, table, box, aff){
+function showSuccessPop(name, table, box, aff, sid){
   document.getElementById('sp-name').textContent = name || '';
+  document.getElementById('sp-sid').textContent = sid || '';
   document.getElementById('sp-box').textContent = `Table ${table||'?'} · Box ${box||'TBA'}`;
   document.getElementById('sp-aff').textContent = aff || '';
   const pop = document.getElementById('success-pop');
@@ -162,11 +165,11 @@ async function onScan(decoded){
   const age=now-parseInt(tsStr);if(age>QR_VALID){setStatus('expired',`⏰ Expired (${age}s) — refresh`);scanFeedback('error');return;}
   if(scannedSet.has(id)){setStatus('duplicate','⚠ Already picked up');scanFeedback('duplicate');return;}
   scannedSet.add(id);   // 서버 호출 전 미리 잠금 (중복 race 방지)
-  isProcessing=true; 
+  isProcessing=true;    // ← 이 스캔 처리하는 동안 다른 디코드 차단
   setStatus('ready','⏳ Recording...');
   try{
     const r=await fetch(`${getAPI()}?action=pickup&id=${encodeURIComponent(id)}`);const d=await r.json();
-    if(!d.success){scannedSet.delete(id);setStatus('error','❌ '+d.error);scanFeedback('error');return;}
+    if(!d.success){scannedSet.delete(id);isProcessing=false;setStatus('error','❌ '+d.error);scanFeedback('error');return;}  // ← 실패 시 즉시 해제
     const card=document.getElementById('scanned');
     document.getElementById('s-name').textContent=d.name||id;document.getElementById('s-detail').textContent=`${id} · ${d.affiliation||''}`;document.getElementById('s-table').textContent=`Table ${d.table_number||'?'} · Box ${d.box_number||'TBA'}`;
     if(d.already_picked_up){
@@ -175,13 +178,13 @@ async function onScan(decoded){
       card.className='scanned ok';
       setStatus('success',`✓ ${d.name} — pickup recorded! (${d.pickedUp}/${d.total})`);
       scanFeedback('success');
-      showSuccessPop(d.name, d.table_number, d.box_number, d.affiliation);
+      showSuccessPop(d.name, d.table_number, d.box_number, d.affiliation, id);   // ← 학번(id) 전달
       pickedCount=d.pickedUp; totalSt=d.total;
       addLog(d.name,d.affiliation||'',id,d.table_number||'?',d.box_number||'TBA');
     }
     card.style.display='block';card.style.animation='none';card.offsetHeight;card.style.animation='slideUp 0.3s ease';updateCounter();
-    setTimeout(()=>{card.style.display='none';if(scanning)setStatus('ready','📷 Ready');},3000);
-  }catch(e){scannedSet.delete(id);setStatus('error','❌ Network error');scanFeedback('error');}
+    setTimeout(()=>{card.style.display='none';isProcessing=false;if(scanning)setStatus('ready','📷 Ready');},3000);  // ← 결과 표시 끝나면 해제
+  }catch(e){scannedSet.delete(id);isProcessing=false;setStatus('error','❌ Network error');scanFeedback('error');}  // ← 통신 실패 시 해제
 }
 
 function setStatus(t,m){const e=document.getElementById('scan-status');e.className=`scan-status ${t}`;e.textContent=m;}
