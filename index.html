@@ -28,6 +28,9 @@
   .top-bar::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--gold); }
   .top-bar h1 { font-family: var(--display); font-size: 20px; color: #fff; margin-bottom: 4px; }
   .top-bar p { font-size: 12px; color: rgba(200,169,81,0.8); font-weight: 500; }
+  /* 날짜 · 장소 (Settings 시트에서 채워짐). 값 없으면 여백 없이 숨김 */
+  .top-bar .event-meta { font-size: 11.5px; color: rgba(255,255,255,0.65); font-weight: 400; margin-top: 3px; }
+  .top-bar .event-meta:empty { display: none; }
 
   .container { max-width: 440px; margin: 0 auto; padding: 24px 16px 40px; }
 
@@ -157,11 +160,13 @@
 </head>
 <body>
 
-<!-- 상단 문구는 Settings 시트(event_name / event_date / event_location)로 자동 대체됨.
-     아래 값은 로딩 실패 시 표시되는 기본 문구(fallback). -->
+<!-- 제목·부제는 고정(하드코딩).
+     그 아래 event-meta 줄만 Settings 시트의 event_date / event_location 값으로 채워짐.
+     시트 로딩 전/실패 시에는 빈 줄로 남아 화면이 깨지지 않음. -->
 <div class="top-bar">
-  <h1 id="event-title">Student ID Card Pickup</h1>
-  <p id="event-sub">YISS 2026 · Yonsei International Summer School</p>
+  <h1>Student ID Card Pickup</h1>
+  <p>YISS 2026 · Yonsei International Summer School</p>
+  <p id="event-meta" class="event-meta"></p>
 </div>
 
 <div class="container">
@@ -278,8 +283,9 @@ let timerInterval = null;
 let currentStudent = null;
 let eventInfo = {};   // Settings 시트에서 받아온 행사 정보
 
-// ─── 행사 정보 로드 (Settings 시트 기준) ───
-// 페이지 열릴 때 1회 호출. 실패해도 위 HTML의 기본 문구가 그대로 남음.
+// ─── 행사 날짜·장소 로드 (Settings 시트 기준) ───
+// 페이지 열릴 때 1회 호출. 제목·부제는 고정이고 그 아래 줄만 채움.
+// 실패하면 해당 줄이 비어 있을 뿐 나머지 화면은 정상.
 async function loadEventInfo() {
   try {
     const res = await fetch(`${CONFIG.API_URL}?action=settings`);
@@ -288,14 +294,11 @@ async function loadEventInfo() {
 
     eventInfo = d;
 
-    if (d.event_name) {
-      document.getElementById('event-title').textContent = d.event_name;
-      document.title = d.event_name;
-    }
-    const sub = [d.event_date, d.event_location].filter(Boolean).join(' · ');
-    if (sub) document.getElementById('event-sub').textContent = sub;
+    // 날짜 · 장소 (둘 중 하나만 있어도 표시)
+    const meta = [d.event_date, d.event_location].filter(Boolean).join(' · ');
+    if (meta) document.getElementById('event-meta').textContent = meta;
   } catch (err) {
-    /* 네트워크 오류 시 기본 문구 유지 */
+    /* 네트워크 오류 시 해당 줄은 비워둠 (제목·부제는 그대로) */
   }
 }
 document.addEventListener('DOMContentLoaded', loadEventInfo);
