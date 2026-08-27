@@ -157,9 +157,11 @@
 </head>
 <body>
 
+<!-- 상단 문구는 Settings 시트(event_name / event_date / event_location)로 자동 대체됨.
+     아래 값은 로딩 실패 시 표시되는 기본 문구(fallback). -->
 <div class="top-bar">
-  <h1>Student ID Card Pickup</h1>
-  <p>YISS 2026 · Yonsei International Summer School</p>
+  <h1 id="event-title">Student ID Card Pickup</h1>
+  <p id="event-sub">YISS 2026 · Yonsei International Summer School</p>
 </div>
 
 <div class="container">
@@ -274,6 +276,29 @@ const DEMO_STUDENTS = {
 
 let timerInterval = null;
 let currentStudent = null;
+let eventInfo = {};   // Settings 시트에서 받아온 행사 정보
+
+// ─── 행사 정보 로드 (Settings 시트 기준) ───
+// 페이지 열릴 때 1회 호출. 실패해도 위 HTML의 기본 문구가 그대로 남음.
+async function loadEventInfo() {
+  try {
+    const res = await fetch(`${CONFIG.API_URL}?action=settings`);
+    const d = await res.json();
+    if (!d || !d.success) return;
+
+    eventInfo = d;
+
+    if (d.event_name) {
+      document.getElementById('event-title').textContent = d.event_name;
+      document.title = d.event_name;
+    }
+    const sub = [d.event_date, d.event_location].filter(Boolean).join(' · ');
+    if (sub) document.getElementById('event-sub').textContent = sub;
+  } catch (err) {
+    /* 네트워크 오류 시 기본 문구 유지 */
+  }
+}
+document.addEventListener('DOMContentLoaded', loadEventInfo);
 
 async function handleLookup() {
   const email = document.getElementById('input-email').value.trim();
@@ -330,7 +355,9 @@ function showResult(student, settings) {
   document.getElementById('r-affiliation').textContent = student.affiliation;
 
   document.getElementById('table-num').textContent = student.table_number;
-  document.getElementById('table-location').textContent = settings.event_location || '';
+  // 장소: lookup 응답 우선, 없으면 페이지 로드 시 받아둔 값 사용
+  document.getElementById('table-location').textContent =
+    (settings && settings.event_location) || eventInfo.event_location || '';
 
   const pickedEl = document.getElementById('already-picked');
   const qrSection = document.getElementById('qr-section');
