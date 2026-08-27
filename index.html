@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YISS 2026 — Student ID Card Pickup</title>
+<title> Student ID Card Pickup</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
@@ -181,7 +181,7 @@
         <label class="form-label">Email Address</label>
         <input type="email" class="form-input" id="input-email"
                placeholder="Enter your summerapply email" autocomplete="email">
-        <p class="form-hint">The email you used for your YISS application</p>
+        <p class="form-hint">The email you used for your application</p>
       </div>
       <div class="form-group">
         <label class="form-label">Date of Birth</label>
@@ -383,7 +383,7 @@ function showResult(student, settings) {
     // 등록 취소 — 픽업 불가
     groupNotice.classList.remove('hidden');
     document.getElementById('group-notice-main').innerHTML = 'Your registration has been cancelled.';
-    document.getElementById('group-notice-sub').textContent = 'ID card pickup is not available. Please contact the YISS office if you have questions.';
+    document.getElementById('group-notice-sub').textContent = 'ID card pickup is not available. Please contact the OIA office if you have questions.';
     tableBadge.style.display = 'none';
     qrSection.style.display = 'none';
     idNotice.style.display = 'none';
